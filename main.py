@@ -32,7 +32,7 @@ def main():
     print(f"Adresse Broadcast: {broadcast_address}")
     print("Sous-réseaux:")
     for i, (net, broad, router, switch) in enumerate(subnets):
-        print(f"  Sous Réseaux {i+1}0:")
+        print(f"  Sous Réseau {i+1}0:")
         print(f"    Adresse Réseau: {net}")
         print(f"    Adresse Broadcast: {broad}")
         print(f"    IP du Routeur: {router}")
