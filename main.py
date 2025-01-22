@@ -109,7 +109,7 @@ def configure_switch(subnets, vlan_tab, ip_mask):
             file.write(f"interface vlan {vlan_tab[i][1]}\n")
             switch_ip = subnets[i][3]
             file.write(f"ip address {switch_ip} {ip_mask}\n")
-            file.write("exit\n")
+        file.write("exit\n")
         # Configuration des ports
         for i in range(len(vlan_tab)):
             port = input(f"Entrer le port du vlan {vlan_tab[i][0]}: ")
