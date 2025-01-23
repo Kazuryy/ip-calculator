@@ -15,8 +15,8 @@ def calculate_subnet_mask_whynot(original_mask, num_subnets):
     new_mask = original_mask + additional_bits
     return new_mask
 
-def calculate_subnet_mask(ip, mask):
-    print(ip, mask)
+def calculate_subnet_mask(ip, mask, num):
+
     network = ipaddress.IPv4Network(f"{ip}/{mask}", strict=False)
     return str(network.netmask)
 
@@ -29,13 +29,15 @@ def is_valid_ip(ip):
 
 def subnet_network(ip, mask, num_subnets):
     network = ipaddress.IPv4Network(f"{ip}/{mask}", strict=False)
-    subnets = list(network.subnets(new_prefix=network.prefixlen + (num_subnets - 1).bit_length()))
+    new_prefix = network.prefixlen + (num_subnets - 1).bit_length()
+    subnets = list(network.subnets(new_prefix=new_prefix))
     subnet_info = []
     for subnet in subnets:
         hosts = list(subnet.hosts())
         router_ip = str(hosts[-1])
         switch_ip = str(hosts[-2])
-        subnet_info.append((str(subnet.network_address), str(subnet.broadcast_address), router_ip, switch_ip))
+        subnet_mask = str(subnet.netmask)
+        subnet_info.append((str(subnet.network_address), str(subnet.broadcast_address), router_ip, switch_ip, subnet_mask))
     return subnet_info
 
 def main():
@@ -70,25 +72,26 @@ def main():
     for i in range(num_subnets):
         namevlan = str(input("Entrer le nom du vlan: "))
         vlan_tab.append([namevlan, f"{i+1}0"])
-    print(vlan_tab)
+    # print(vlan_tab) # Affiche le tableau avec le nom des vlan et leur numéro
 
     network_address = calculate_network_address(ip, mask)
     broadcast_address = calculate_broadcast_address(ip, mask)
-    ip_mask = calculate_subnet_mask(ip, mask)
     subnets = subnet_network(ip, mask, num_subnets)
-    print(subnets)
+    ip_mask = subnets[0][4]
+    print(subnets) # Affiche le tableau avec les ip importantes pour tous les sous réseaux
     print(f"\nAdresse Réseau: {network_address}")
     print(f"Adresse Broadcast: {broadcast_address}")
     print("Sous-réseaux:\n")
-    for i, (net, broad, router, switch) in enumerate(subnets):
+    for i, (net, broad, router, switch, ip_mask) in enumerate(subnets):
         print(f"  Sous Réseau {i+1}:")
         print(f"    Numéro du lan: vlan {i+1}0")
         print(f"    Adresse Réseau: {net}")
         print(f"    Adresse Broadcast: {broad}")
         print(f"    IP du Routeur: {router}")
-        print(f"    IP du Switch: {switch}\n")
+        print(f"    IP du Switch: {switch}")
+        print(f"    Mask: {ip_mask}\n")
 
-    # Config ou pas du switch et routeur
+    # Choisir de configurer ou non le routeur et le switch
     choix_config_switch = input("Voulez-vous configurer les switchs et routeurs? (O/N): ")
     if choix_config_switch.lower() == "o":
         configure_switch(subnets, vlan_tab, ip_mask)
@@ -109,7 +112,7 @@ def configure_switch(subnets, vlan_tab, ip_mask):
             file.write(f"interface vlan {vlan_tab[i][1]}\n")
             switch_ip = subnets[i][3]
             file.write(f"ip address {switch_ip} {ip_mask}\n")
-        file.write("exit\n")
+            file.write("exit\n")
         # Configuration des ports
         for i in range(len(vlan_tab)):
             port = input(f"Entrer le port du vlan {vlan_tab[i][0]}: ")
@@ -119,7 +122,7 @@ def configure_switch(subnets, vlan_tab, ip_mask):
         port_routeur = input("Entrer le port du vlan routeur: ")
         file.write(f"interface {port_routeur}\n")
         file.write("switchport mode trunk\n")
-        file.write("end\n")
+        file.write("end")
 
 def configure_router(subnets, vlan_tab, ip_mask):
     with open("router_config.txt", "w") as file:
@@ -130,7 +133,7 @@ def configure_router(subnets, vlan_tab, ip_mask):
             file.write(f"encapsulation dot1Q {vlan_tab[i][1]}\n")
             file.write(f"ip address {subnets[i][2]} {ip_mask}\n")
         file.write("interface gi0/0\n")
-        file.write("no shutdown\n")
+        file.write("no shutdown")
 
 
 if __name__ == "__main__":
