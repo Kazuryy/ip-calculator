@@ -24,7 +24,7 @@ This project is a Python-based tool designed to assist network administrators in
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/ip-calculator.git
+   git clone https://github.com/Kazuryy/ip-calculator.git
    ```
 2. Navigate to the project directory:
    ```bash
